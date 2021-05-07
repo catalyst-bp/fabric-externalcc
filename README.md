@@ -9,3 +9,8 @@ To check work of deployed chaincode you can use listed below invoke and query fu
 { "function":"invoke", "args":["John"] }
 { "function":"query", "args":["John"] }
 ```
+
+To build docker image run the following command:
+```
+docker build . -t fabric-externalcc:latest
+```
