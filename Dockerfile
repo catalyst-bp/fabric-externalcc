@@ -1,8 +1,8 @@
-FROM golang:1.12.9-alpine AS build_base
+FROM golang:1.16-alpine AS build_base
 
 RUN apk add --update gcc g++ git
 
-WORKDIR /go/src/github.com/example-chaincode
+WORKDIR /go/src/github.com/helloworld-chaincode
 
 ENV GO111MODULE=on
 
