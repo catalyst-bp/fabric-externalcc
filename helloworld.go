@@ -36,6 +36,10 @@ func (h *HelloWorld) invoke(stub shim.ChaincodeStubInterface, args []string) pb.
 		return shim.Error(err.Error())
 	}
 
+	if err := stub.SetEvent("notification", []byte(fmt.Sprintf("key %s successfully saved", key))); err != nil {
+		return shim.Error("error happened emitting event: " + err.Error())
+	}
+
 	return shim.Success(nil)
 }
 
