@@ -1,13 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/hyperledger/fabric-chaincode-go/shim"
 	pb "github.com/hyperledger/fabric-protos-go/peer"
+	"log"
 	"os"
 )
 
-type HelloWorld struct {}
+type HelloWorld struct{}
 
 func (h *HelloWorld) Init(stub shim.ChaincodeStubInterface) pb.Response {
 	return shim.Success(nil)
@@ -15,12 +17,12 @@ func (h *HelloWorld) Init(stub shim.ChaincodeStubInterface) pb.Response {
 
 func (h *HelloWorld) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	function, args := stub.GetFunctionAndParameters()
-	
-	fmt.Printf("Invoking %s with args: %v", function, args)
 
-	if function == "invoke" {
+	log.Printf("Invoking %s with args: %v", function, args)
+
+	if function == "save" {
 		return h.invoke(stub, args)
-	} else if function == "query" {
+	} else if function == "get" {
 		return h.query(stub, args)
 	}
 
@@ -28,15 +30,17 @@ func (h *HelloWorld) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 }
 
 func (h *HelloWorld) invoke(stub shim.ChaincodeStubInterface, args []string) pb.Response {
-	if len(args) != 1 {
+	if len(args) != 2 {
 		return shim.Error("Incorrect number of args")
 	}
-	
-	fmt.Printf("Querying %s with args: %v", function, args)
 
 	key := args[0]
+	value, err := json.Marshal(args[1])
+	if err != nil {
+		return shim.Error(fmt.Sprintf("marshalling value: %s", err.Error()))
+	}
 
-	if err := stub.PutState(key, []byte("Hello World!")); err != nil {
+	if err := stub.PutState(key, value); err != nil {
 		return shim.Error(err.Error())
 	}
 
@@ -59,8 +63,11 @@ func (h *HelloWorld) query(stub shim.ChaincodeStubInterface, args []string) pb.R
 		return shim.Error("Error getting state: " + err.Error())
 	}
 
-	response := "{\"Greetings for " + key + "\":\"" + string(value) + "\"}"
-	return shim.Success([]byte(response))
+	if value == nil {
+		return shim.Error("no such key")
+	}
+
+	return shim.Success(value)
 }
 
 func main() {
@@ -68,17 +75,17 @@ func main() {
 	address := os.Getenv("CHAINCODE_ADDRESS")
 
 	server := &shim.ChaincodeServer{
-		CCID:     ccid,
-		Address:  address,
-		CC:       &HelloWorld{},
+		CCID:    ccid,
+		Address: address,
+		CC:      &HelloWorld{},
 		TLSProps: shim.TLSProperties{
 			Disabled: true,
 		},
 	}
-	
-	fmt.Printf("Started ccid %s on %s", ccid, address)
+
+	log.Printf("Started ccid %s on %s", ccid, address)
 
 	if err := server.Start(); err != nil {
-		fmt.Printf("Error starting HelloWorld chaincode: %s", err)
+		log.Fatalf("Error starting HelloWorld chaincode: %s", err)
 	}
 }
