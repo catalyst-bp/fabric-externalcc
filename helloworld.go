@@ -15,6 +15,8 @@ func (h *HelloWorld) Init(stub shim.ChaincodeStubInterface) pb.Response {
 
 func (h *HelloWorld) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
 	function, args := stub.GetFunctionAndParameters()
+	
+	fmt.Printf("Invoking %s with args: %v", function, args)
 
 	if function == "invoke" {
 		return h.invoke(stub, args)
@@ -29,6 +31,8 @@ func (h *HelloWorld) invoke(stub shim.ChaincodeStubInterface, args []string) pb.
 	if len(args) != 1 {
 		return shim.Error("Incorrect number of args")
 	}
+	
+	fmt.Printf("Querying %s with args: %v", function, args)
 
 	key := args[0]
 
@@ -71,6 +75,8 @@ func main() {
 			Disabled: true,
 		},
 	}
+	
+	fmt.Printf("Started ccid %s on %s", ccid, address)
 
 	if err := server.Start(); err != nil {
 		fmt.Printf("Error starting HelloWorld chaincode: %s", err)
